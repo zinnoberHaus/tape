@@ -9,7 +9,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "compile:design": "node scripts/compile-design.mjs",
-    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "generate:social": "node --import tsx scripts/generate-social-image.tsx"
   },
   "engines": {
     "node": "24.x"

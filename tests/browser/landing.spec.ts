@@ -42,7 +42,7 @@ test("landing explains the product and provides crawlable search metadata", asyn
     .first()
     .getAttribute("content");
   expect(image).toMatch(/^https:\/\/tape-five-zeta.vercel.app\//);
-  const og = await request.get("/opengraph-image");
+  const og = await request.get("/opengraph-image.png");
   expect(og.status()).toBe(200);
   expect(og.headers()["content-type"]).toContain("image/png");
   const sitemap = await request.get("/sitemap.xml");

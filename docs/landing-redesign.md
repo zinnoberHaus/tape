@@ -58,3 +58,5 @@ Artifacts remain local under `artifacts/`; no synthetic financial performance or
 This release changes the public landing page, metadata and crawl endpoints. Auth UI and research-workspace styles load with their respective routes. No database, auth policy, billing or infrastructure migration is needed. Roll back to the prior deployment `dpl_AvFjPPbuZKiwDhsvzdE3Wm2ia1Xq` / application commit `5e17d22` if necessary; this restores the previous landing and metadata without affecting saved workspaces.
 
 The canonical origin is centralized in `src/lib/site.ts`. Only the public landing page is listed in the sitemap and indexable; account routes and the illustrative demo inherit noindex. API paths are disallowed in robots.txt. Search Console ownership, sitemap submission and actual search indexing have not been verified or claimed.
+
+The first Vercel release of this redesign passed all 4 browser checks on the public alias. The social image is now a committed static PNG, regenerated with `npm run generate:social`, so its rendering dependencies are not needed by deployed server functions.

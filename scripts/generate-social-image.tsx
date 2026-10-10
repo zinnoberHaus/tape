@@ -1,3 +1,5 @@
+import React from "react";
+import { writeFile } from "node:fs/promises";
 import { ImageResponse } from "next/og";
 export const alt =
   "Tape — Read the market. Connect the dots. AI-powered stock research and portfolio analysis.";
@@ -90,3 +92,14 @@ export default function OpenGraphImage() {
     size,
   );
 }
+
+async function main() {
+  await writeFile(
+    "src/app/opengraph-image.png",
+    Buffer.from(await OpenGraphImage().arrayBuffer()),
+  );
+}
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
