@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.vercel/
+.env*
+!.env.example
+design-reference/
+.agents/
+.claude/
+.cursor/
+.codex/
+skills-lock.json
+artifacts/
+*.tsbuildinfo
+.DS_Store

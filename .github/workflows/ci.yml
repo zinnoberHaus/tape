@@ -1,0 +1,22 @@
+name: Check
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run compile:design
+      - run: git diff --exit-code -- src/components/tape-view.jsx src/design/hover.css
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+        env:
+          NEON_AUTH_BASE_URL: https://example.invalid/auth
+          NEON_AUTH_COOKIE_SECRET: ci-placeholder-secret-not-used-for-a-deployment

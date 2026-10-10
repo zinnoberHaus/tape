@@ -1,0 +1,886 @@
+
+
+<div class="tape-shell" style="height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#0A0D12">
+  <div onMouseEnter="{{ pauseTape }}" onMouseLeave="{{ resumeTape }}" style="flex:none;height:32px;display:flex;align-items:stretch;background:#06080B;border-bottom:1px solid #1E2631;overflow:hidden">
+    <div style="flex:none;display:flex;align-items:center;gap:7px;padding:0 14px;border-right:1px solid #1E2631;font:600 10.5px/1 'Geist Mono',monospace;letter-spacing:.1em;color:#1FD18A">
+      <span style="width:6px;height:6px;border-radius:50%;background:#1FD18A;box-shadow:0 0 8px #1FD18A"></span>TAPE
+    </div>
+    <div style="flex:1;min-width:0;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)">
+      <div ref="{{ tapeRef }}" style="display:flex;height:100%;width:max-content">
+        <sc-for list="{{ tapeItems }}" as="t" hint-placeholder-count="10">
+          <div onClick="{{ t.onClick }}" style="display:flex;align-items:center;gap:8px;padding:0 16px;cursor:pointer;white-space:nowrap;font-size:12px" style-hover="background:#10151C">
+            <span style="width:16px;height:16px;border-radius:4px;display:grid;place-items:center;font:600 9.5px/1 'Geist Mono',monospace;background:{{ t.cb }};color:{{ t.cf }}">{{ t.code }}</span>
+            <span style="font:600 12px/1 'Geist Mono',monospace">{{ t.sym }}</span>
+            <span style="color:#A3ADBB">{{ t.text }}</span>
+            <span style="font-weight:600;color:{{ t.cc }}">{{ t.chg }}</span>
+            <span style="width:1px;height:12px;background:#1E2631;margin-left:8px"></span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <aside class="tape-sidebar" style="width:224px;flex:none;background:#0C1016;border-right:1px solid #1E2631;display:flex;flex-direction:column;gap:22px;padding:18px 12px 14px;overflow-y:auto">
+      <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;padding:2px 8px;cursor:pointer">
+        <span style="width:28px;height:28px;border-radius:8px;background:#1FD18A;color:#03140C;display:grid;place-items:center;font:800 16px/1 Geist,sans-serif;letter-spacing:-.04em">T</span>
+        <span style="font:700 20px/1 Geist,sans-serif;letter-spacing:-.03em">Tape</span>
+      </div>
+      <nav style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <button aria-label="{{ n.label }}" title="{{ n.label }}" onClick="{{ n.onClick }}" style="display:flex;align-items:center;gap:11px;border:0;border-radius:8px;padding:9px 10px;background:{{ n.bg }};color:{{ n.fg }};cursor:pointer;text-align:left;font-size:13.5px;font-weight:{{ n.fw }}" style-hover="background:#151B24;color:#E8ECF1">
+            <svg width="17" height="17" viewBox="0 0 24 24" style="flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="{{ n.icon }}"></path></svg>
+            <span style="flex:1">{{ n.label }}</span>
+            <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;background:{{ n.badgeBg }};color:{{ n.badgeFg }};border-radius:9px;padding:2px 7px">{{ n.badge }}</span></sc-if>
+          </button>
+        </sc-for>
+      </nav>
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <div style="display:flex;justify-content:space-between;padding:0 10px 8px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#7D8796"><span>Watchlist</span><span>Day</span></div>
+        <sc-for list="{{ watch }}" as="w" hint-placeholder-count="6">
+          <button onClick="{{ w.onClick }}" style="display:grid;grid-template-columns:minmax(0,1fr) 46px auto;align-items:center;gap:8px;border:0;background:{{ w.bg }};border-radius:8px;padding:7px 10px;cursor:pointer;text-align:left" style-hover="background:#151B24">
+            <span style="display:flex;align-items:center;gap:6px;min-width:0"><span style="font:600 12.5px/1 'Geist Mono',monospace">{{ w.sym }}</span><sc-if value="{{ w.dot }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ w.dot }}"></span></sc-if></span>
+            <svg width="46" height="16" viewBox="0 0 46 16" style="display:block"><path d="{{ w.spark }}" style="fill:none;stroke:{{ w.color }};stroke-width:1.3"></path></svg>
+            <span style="font-size:12px;font-weight:600;color:{{ w.color }};text-align:right;min-width:52px">{{ w.chg }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:10px;background:linear-gradient(160deg,#12241D,#10151C 70%);border:1px solid #1E3A2E">
+        <div style="font-size:13px;font-weight:600">Your research workspace</div>
+        <div style="font-size:12px;color:#A3ADBB;line-height:1.45">Sample market data. Your watchlist, tracked setups and alerts are saved to your account.</div>
+        <a href="/account" style="font-size:12.5px;font-weight:600">Account settings →</a><span role="status" style="font-size:11px;color:#A3ADBB">{{ syncStatus }}</span>
+      </div>
+    </aside>
+
+    <main ref="{{ mainRef }}" style="flex:1;min-width:0;overflow-y:auto;overflow-x:hidden">
+      <header class="tape-header" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:12px 28px;background:rgba(10,13,18,.88);backdrop-filter:blur(12px);border-bottom:1px solid #1E2631">
+        <label style="flex:1;max-width:620px;display:flex;align-items:center;gap:10px;background:#10151C;border:1px solid #1E2631;border-radius:10px;padding:0 8px 0 12px;height:40px">
+          <svg width="16" height="16" viewBox="0 0 24 24" style="flex:none;fill:none;stroke:#7D8796;stroke-width:2;stroke-linecap:round"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5"></path></svg>
+          <input ref="{{ cmdRef }}" value="{{ cmd }}" onChange="{{ onCmd }}" onKeyDown="{{ onCmdKey }}" placeholder="Search a ticker, or ask Tape anything…" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14px">
+          <span style="font:500 11px/1 'Geist Mono',monospace;color:#7D8796;border:1px solid #2A3340;border-radius:5px;padding:4px 6px">⌘K</span>
+        </label>
+        <div class="market-status" style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#A3ADBB;white-space:nowrap">
+          <span style="width:7px;height:7px;border-radius:50%;background:#7D8796"></span>Demo dataset · Oct 9, 2026
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+          <button onClick="{{ openAi }}" style="display:flex;align-items:center;gap:8px;border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#4BE0A6">
+            <svg width="15" height="15" viewBox="0 0 24 24" style="fill:currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>Ask Tape
+          </button>
+          <button aria-label="Alerts" onClick="{{ goAlerts }}" style="position:relative;width:38px;height:38px;border-radius:9px;border:1px solid #1E2631;background:#10151C;display:grid;place-items:center;cursor:pointer" style-hover="border-color:#2F3B49">
+            <svg width="17" height="17" viewBox="0 0 24 24" style="fill:none;stroke:#C3CBD6;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"></path></svg>
+            <span style="position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:#FF5D5D;border:2px solid #10151C"></span>
+          </button>
+          <a href="{{ accountHref }}" aria-label="Account settings" title="{{ accountName }}" style="width:36px;height:36px;border-radius:50%;background:#1B222D;border:1px solid #2A3340;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#E8ECF1">{{ initials }}</a>
+        </div>
+      </header>
+
+      <div class="tape-content" style="padding:26px 28px 44px;max-width:1440px;margin:0 auto">
+        <sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+          <div data-screen-label="Home" style="display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px">
+              <div style="min-width:0;flex:1 1 520px">
+                <div style="font-size:12.5px;color:#7D8796">Sample briefing · October 10, 2026</div>
+                <h1 style="margin:8px 0 0;font:600 30px/1.18 Geist,sans-serif;letter-spacing:-.025em;text-wrap:balance;max-width:30ch">3 strong setups this week — and one is a warning on a stock you own.</h1>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ h.idx }}" as="x" hint-placeholder-count="4">
+                  <div style="display:flex;flex-direction:column;gap:5px;padding:9px 12px;min-width:104px;background:#10151C;border:1px solid #1E2631;border-radius:10px">
+                    <span style="font-size:11.5px;color:#7D8796">{{ x.n }}</span>
+                    <span style="display:flex;align-items:baseline;gap:7px"><span style="font-size:14px;font-weight:600">{{ x.v }}</span><span style="font-size:11.5px;font-weight:600;color:{{ x.c }}">{{ x.ch }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px">
+              <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#7D8796">Your portfolio</span><span onClick="{{ goPortfolio }}" style="font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">X-ray →</span></div>
+                <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span style="font:600 32px/1 Geist,sans-serif;letter-spacing:-.03em">{{ h.pv }}</span><span style="font-size:14px;font-weight:600;color:{{ h.pwC }}">{{ h.pw }}</span></div>
+                <div style="font-size:12.5px;color:#7D8796">This week · S&amp;P 500 +1.1% · you’re ahead by {{ h.alpha }}</div>
+                <svg viewBox="0 0 300 70" preserveAspectRatio="none" style="width:100%;height:70px;display:block">
+                  <defs><linearGradient id="pfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:#1FD18A;stop-opacity:.28"></stop><stop offset="1" style="stop-color:#1FD18A;stop-opacity:0"></stop></linearGradient></defs>
+                  <path d="{{ h.pfArea }}" style="fill:url(#pfg)"></path>
+                  <path d="{{ h.pfLine }}" style="fill:none;stroke:#1FD18A;stroke-width:1.75;vector-effect:non-scaling-stroke"></path>
+                </svg>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ h.movers }}" as="m"><button onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:6px;border:1px solid #1E2631;background:#0C1117;border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer" style-hover="border-color:#2F3B49"><span style="font:600 11.5px/1 'Geist Mono',monospace">{{ m.sym }}</span><span style="font-weight:600;color:{{ m.c }}">{{ m.chg }}</span></button></sc-for>
+                </div>
+              </section>
+
+              <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#7D8796"><svg width="13" height="13" viewBox="0 0 24 24" style="fill:#1FD18A"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>Tape’s market read</span><span style="font-size:11.5px;font-weight:600;color:#1FD18A;background:rgba(31,209,138,.12);border-radius:6px;padding:4px 8px">Risk-on · narrow</span></div>
+                <p style="margin:0;font-size:16.5px;line-height:1.45;font-weight:500;letter-spacing:-.01em;text-wrap:pretty">Money is rotating into power and defense and out of megacap chips. Wednesday’s CPI is the week’s swing factor.</p>
+                <div style="display:flex;flex-direction:column;gap:9px;font-size:13px;line-height:1.45;color:#C3CBD6">
+                  <div style="display:grid;grid-template-columns:16px 1fr;gap:6px"><span style="color:#1FD18A">▲</span><span>Utilities had their best week since March on higher data-center power forecasts.</span></div>
+                  <div style="display:grid;grid-template-columns:16px 1fr;gap:6px"><span style="color:#1FD18A">▲</span><span>December rate-cut odds jumped to 71% after Friday’s soft jobs report.</span></div>
+                  <div style="display:grid;grid-template-columns:16px 1fr;gap:6px"><span style="color:#FF5D5D">▼</span><span>Only 54% of S&amp;P stocks are above their 50-day average — the rally is narrow.</span></div>
+                </div>
+                <div style="margin-top:auto;display:flex;align-items:center;gap:14px;padding-top:4px">
+                  <button onClick="{{ togglePlay }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A3340;background:transparent;border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:#1FD18A">{{ h.playLabel }}</button>
+                  <span onClick="{{ openAi }}" style="font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">Ask a follow-up →</span>
+                </div>
+              </section>
+
+              <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#7D8796">Protect your money</span><span style="font-size:11.5px;font-weight:600;color:#FF7A7A;background:rgba(255,93,93,.12);border-radius:6px;padding:4px 8px">3 to review</span></div>
+                <sc-for list="{{ h.watch }}" as="r" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:4px 1fr;gap:12px;padding:11px 0;border-top:1px solid #1A212B">
+                    <span style="border-radius:2px;background:{{ r.c }}"></span>
+                    <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                      <span style="font-size:13.5px;font-weight:600">{{ r.k }}</span>
+                      <span style="font-size:12.5px;line-height:1.45;color:#A3ADBB">{{ r.n }}</span>
+                      <span onClick="{{ r.on }}" style="font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer;margin-top:2px">{{ r.a }} →</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </section>
+            </div>
+
+            <section style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px">
+                <h2 style="margin:0;font:600 19px/1.2 Geist,sans-serif;letter-spacing:-.015em">Top opportunities</h2>
+                <span style="font-size:12.5px;color:#7D8796">Ranked by Tape Score — how strongly independent signals agree</span>
+                <span onClick="{{ goOpps }}" style="margin-left:auto;font-size:13px;font-weight:600;color:#1FD18A;cursor:pointer">All 12 setups →</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px">
+                <sc-for list="{{ h.top }}" as="o" hint-placeholder-count="6">
+                  <button onClick="{{ o.onClick }}" style="text-align:left;display:flex;flex-direction:column;gap:14px;padding:16px;background:#10151C;border:1px solid #1E2631;border-radius:14px;cursor:pointer;min-width:0;transition:border-color .15s,background .15s" style-hover="border-color:#2F3B49;background:#121821">
+                    <div style="display:flex;align-items:center;gap:12px;width:100%">
+                      <div style="width:48px;height:48px;border-radius:50%;background:conic-gradient({{ o.ringC }} {{ o.ringP }}, #1E2631 0);display:grid;place-items:center;flex:none">
+                        <div style="width:40px;height:40px;border-radius:50%;background:#10151C;display:grid;place-items:center;font-size:15px;font-weight:700;color:{{ o.ringC }}">{{ o.score }}</div>
+                      </div>
+                      <div style="flex:1;min-width:0">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font:600 16px/1 'Geist Mono',monospace">{{ o.sym }}</span><span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;background:{{ o.dirBg }};color:{{ o.dirFg }};border-radius:5px;padding:3px 6px">{{ o.dirLab }}</span><span style="font-size:11.5px;color:#7D8796">{{ o.hz }}</span></div>
+                        <div style="font-size:12.5px;color:#A3ADBB;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.name }}</div>
+                      </div>
+                      <div style="text-align:right;flex:none"><div style="font-size:14px;font-weight:600">{{ o.px }}</div><div style="font-size:12px;font-weight:600;margin-top:4px;color:{{ o.chgC }}">{{ o.chg }}</div></div>
+                    </div>
+                    <p style="margin:0;font-size:13.5px;line-height:1.5;color:#C3CBD6;text-wrap:pretty">{{ o.thesis }}</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px">
+                      <sc-for list="{{ o.chips }}" as="c"><span style="font-size:11.5px;font-weight:600;background:{{ c.bg }};color:{{ c.fg }};border-radius:6px;padding:4px 7px">{{ c.label }}</span></sc-for>
+                    </div>
+                    <div style="width:100%;background:#0C1117;border:1px solid #1A212B;border-radius:10px;padding:11px 12px">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796">BEST WAY TO PLAY IT</span><span style="font-size:11.5px;font-weight:600;color:#1FD18A">{{ o.pop }}</span></div>
+                      <div style="font-size:13.5px;font-weight:600;margin-top:7px">{{ o.playName }}</div>
+                      <div style="font-size:12.5px;color:#A3ADBB;margin-top:4px;line-height:1.4">{{ o.playLine }}</div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;color:#7D8796"><span>{{ o.cat }}</span><span style="color:#1FD18A;font-weight:600">View setup →</span></div>
+                  </button>
+                </sc-for>
+              </div>
+            </section>
+
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+              <section style="flex:1 1 560px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px 18px 6px">
+                <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px"><h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">News that moves your money</h2><span style="font-size:12px;color:#7D8796">1,284 articles → the 4 that touch your holdings</span><span onClick="{{ goNews }}" style="margin-left:auto;font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">All news →</span></div>
+                <sc-for list="{{ h.news }}" as="n" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid #1A212B">
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="display:flex;gap:3px"><sc-for list="{{ n.bars }}" as="b"><span style="width:12px;height:5px;border-radius:2px;background:{{ b.bg }}"></span></sc-for></div>
+                      <span style="font-size:11px;font-weight:600;color:{{ n.impC }}">{{ n.imp }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+                      <span style="font-size:14.5px;font-weight:600;line-height:1.35;text-wrap:pretty">{{ n.h }}</span>
+                      <span style="font-size:13px;line-height:1.5;color:#A3ADBB;text-wrap:pretty">{{ n.what }}</span>
+                      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+                        <sc-for list="{{ n.syms }}" as="sy"><button onClick="{{ sy.onClick }}" style="display:flex;align-items:center;gap:6px;border:1px solid #1E2631;background:#0C1117;border-radius:6px;padding:4px 7px;font-size:11.5px;cursor:pointer" style-hover="border-color:#2F3B49"><span style="font:600 11px/1 'Geist Mono',monospace">{{ sy.sym }}</span><span style="font-weight:600;color:{{ sy.c }}">{{ sy.chg }}</span></button></sc-for>
+                        <sc-if value="{{ n.hasExp }}"><span style="font-size:11.5px;font-weight:600;color:#F5B544;background:rgba(245,181,68,.12);border-radius:6px;padding:4px 7px">{{ n.exp }}</span></sc-if>
+                        <span style="font-size:11.5px;color:#7D8796">{{ n.meta }}</span>
+                      </div>
+                      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#7D8796"><span>{{ n.hist }}</span><sc-if value="{{ n.setup }}"><span onClick="{{ n.setup.on }}" style="color:#1FD18A;font-weight:600;cursor:pointer">{{ n.setup.label }} →</span></sc-if></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </section>
+
+              <div style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:16px">
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px 18px 8px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">Smart money, latest</h2><span onClick="{{ goSmart }}" style="font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">Tracker →</span></div>
+                  <sc-for list="{{ h.feed }}" as="f" hint-placeholder-count="6">
+                    <div onClick="{{ f.onClick }}" style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #1A212B;cursor:pointer" style-hover="background:#121821">
+                      <span style="width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:600 10px/1 'Geist Mono',monospace;background:{{ f.cb }};color:{{ f.cf }}">{{ f.code }}</span>
+                      <div style="min-width:0"><div style="font-size:13px;line-height:1.35"><span style="font:600 12px/1 'Geist Mono',monospace">{{ f.sym }}</span> · {{ f.text }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:2px">{{ f.src }}</div></div>
+                      <span style="font-size:12px;font-weight:600;color:{{ f.cc }}">{{ f.chg }}</span>
+                    </div>
+                  </sc-for>
+                </section>
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px 18px 8px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">Market odds</h2><span style="font-size:12px;color:#7D8796">Kalshi + Polymarket</span></div>
+                  <sc-for list="{{ h.odds }}" as="o" hint-placeholder-count="4">
+                    <div style="display:flex;flex-direction:column;gap:7px;padding:11px 0;border-top:1px solid #1A212B">
+                      <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.3"><span style="color:#C3CBD6">{{ o.q }}</span><span style="font-size:15px;font-weight:700">{{ o.p }}%</span></div>
+                      <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:5px;background:#1A212B;border-radius:3px;overflow:hidden"><div style="height:100%;width:{{ o.w }};background:#1FD18A;border-radius:3px"></div></div><span style="font-size:11.5px;font-weight:600;color:{{ o.dc }};min-width:44px;text-align:right">{{ o.d }}</span></div>
+                    </div>
+                  </sc-for>
+                </section>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ is.opps }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Opportunities" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px">
+              <div style="flex:1 1 520px;min-width:0">
+                <h1 style="margin:0;font:600 30px/1.15 Geist,sans-serif;letter-spacing:-.025em">Opportunities</h1>
+                <p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:#A3ADBB;max-width:74ch;text-wrap:pretty">Every signal Tape tracks — Congress, insiders, funds, options flow and news — turned into ranked setups, each with the clearest way to play it in shares or options.</p>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#10151C;border:1px solid #2A3340;border-radius:12px;padding:7px 7px 7px 14px">
+              <svg width="16" height="16" viewBox="0 0 24 24" style="flex:none;fill:#1FD18A"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>
+              <input value="{{ op.q }}" onChange="{{ op.onQ }}" onKeyDown="{{ op.onQKey }}" placeholder="Describe what you want — “bullish defense names with cheap options”" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;height:36px">
+              <button onClick="{{ op.run }}" style="border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" style-hover="background:#4BE0A6">{{ op.runLabel }}</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+              <span style="font-size:12px;color:#7D8796;margin-right:2px">Quick screens</span>
+              <sc-for list="{{ op.presets }}" as="p" hint-placeholder-count="6"><button onClick="{{ p.onClick }}" style="border:1px solid {{ p.bc }};background:{{ p.bg }};color:{{ p.fg }};border-radius:16px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:#3A4553">{{ p.l }}</button></sc-for>
+            </div>
+            <sc-if value="{{ op.hasParsed }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;background:rgba(31,209,138,.06);border:1px solid rgba(31,209,138,.25);border-radius:10px">
+                <span style="font-size:12.5px;color:#A3ADBB">Tape read your search as</span>
+                <sc-for list="{{ op.parsed }}" as="f"><button onClick="{{ f.onClick }}" style="display:flex;align-items:center;gap:6px;border:0;background:#1B222D;border-radius:7px;padding:6px 9px;font-size:12.5px;font-weight:600;cursor:pointer">{{ f.l }}<span style="color:#7D8796">✕</span></button></sc-for>
+                <span onClick="{{ op.clearParsed }}" style="margin-left:auto;font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">Clear</span>
+              </div>
+            </sc-if>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center">
+              <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ op.dirs }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+              <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ op.plays }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+              <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ op.hzs }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+              <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ op.mins }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+              <span style="margin-left:auto;font-size:12.5px;color:#7D8796">{{ op.count }}</span>
+            </div>
+            <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+              <div style="overflow-x:auto">
+                <div style="min-width:1000px">
+                  <div style="display:grid;grid-template-columns:52px 150px minmax(300px,2fr) minmax(220px,1.3fr) 96px 112px;gap:16px;padding:11px 18px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796;border-bottom:1px solid #1E2631">
+                    <span>SCORE</span><span>TICKER</span><span>THE SETUP · WHY</span><span>HOW TO PLAY IT</span><span style="text-align:right">ODDS</span><span>CATALYST</span>
+                  </div>
+                  <sc-for list="{{ op.rows }}" as="r" hint-placeholder-count="8">
+                    <div onClick="{{ r.onClick }}" style="display:grid;grid-template-columns:52px 150px minmax(300px,2fr) minmax(220px,1.3fr) 96px 112px;gap:16px;align-items:center;padding:16px 18px;border-top:1px solid #161C25;cursor:pointer" style-hover="background:#121821">
+                      <div style="width:46px;height:46px;border-radius:50%;background:conic-gradient({{ r.ringC }} {{ r.ringP }}, #1E2631 0);display:grid;place-items:center">
+                        <div style="width:38px;height:38px;border-radius:50%;background:#10151C;display:grid;place-items:center;font-size:14.5px;font-weight:700;color:{{ r.ringC }}">{{ r.score }}</div>
+                      </div>
+                      <div style="min-width:0">
+                        <div style="font:600 15px/1 'Geist Mono',monospace">{{ r.sym }}</div>
+                        <div style="font-size:12px;color:#A3ADBB;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+                        <div style="font-size:12px;margin-top:5px"><span style="font-weight:600">{{ r.px }}</span> <span style="font-weight:600;color:{{ r.chgC }}">{{ r.chg }}</span></div>
+                      </div>
+                      <div style="min-width:0;display:flex;flex-direction:column;gap:8px">
+                        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;background:{{ r.dirBg }};color:{{ r.dirFg }};border-radius:5px;padding:3px 6px">{{ r.dirLab }}</span><span style="font-size:11.5px;color:#7D8796">{{ r.hz }}</span></div>
+                        <div style="font-size:13px;line-height:1.45;color:#C3CBD6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.thesis }}</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ r.chips }}" as="c"><span style="font-size:11px;font-weight:600;background:{{ c.bg }};color:{{ c.fg }};border-radius:5px;padding:3px 6px">{{ c.label }}</span></sc-for></div>
+                      </div>
+                      <div style="min-width:0;padding:10px 12px;background:#0C1117;border:1px solid #1A212B;border-radius:10px">
+                        <div style="font-size:13px;font-weight:600;line-height:1.35">{{ r.playName }}</div>
+                        <div style="font-size:12px;color:#A3ADBB;margin-top:4px;line-height:1.4">{{ r.playLine }}</div>
+                      </div>
+                      <div style="text-align:right"><div style="font-size:17px;font-weight:700;color:#E8ECF1">{{ r.popBig }}</div><div style="font-size:11px;color:#7D8796;margin-top:3px">{{ r.popSub }}</div></div>
+                      <div><div style="font-size:12.5px;font-weight:600">{{ r.cat }}</div><div style="font-size:12px;color:#7D8796;margin-top:4px">{{ r.catD }}</div></div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ op.empty }}" hint-placeholder-val="{{ false }}"><div style="padding:30px 18px;font-size:14px;color:#A3ADBB;border-top:1px solid #161C25">No setups match all of that right now. Loosen a filter, or set an alert and Tape will tell you when one appears.</div></sc-if>
+                </div>
+              </div>
+            </section>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 24px;font-size:12px;color:#7D8796;line-height:1.5">
+              <span><b style="color:#C3CBD6;font-weight:600">Tape Score</b> measures how strongly independent sources agree — weighted by recency, size versus normal, and each source’s historical hit rate.</span>
+              <span><b style="color:#C3CBD6;font-weight:600">Odds</b> are options-implied chances of profit at expiry, not predictions.</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is.ticker }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Ticker" style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#7D8796"><span onClick="{{ goOpps }}" style="cursor:pointer;color:#A3ADBB" style-hover="color:#E8ECF1">Opportunities</span><span>/</span><span style="color:#E8ECF1">{{ t.sym }}</span></div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px">
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <h1 style="margin:0;font:600 34px/1 'Geist Mono',monospace;letter-spacing:-.03em">{{ t.sym }}</h1>
+                  <span style="font-size:18px;font-weight:500;color:#C3CBD6">{{ t.name }}</span>
+                  <span style="font:500 11px/1 'Geist Mono',monospace;color:#A3ADBB;border:1px solid #2A3340;border-radius:5px;padding:4px 6px">{{ t.ex }}</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:28px;font-weight:600;letter-spacing:-.02em">{{ t.px }}</span><span style="font-size:15px;font-weight:600;color:{{ t.dColor }}">{{ t.dTxt }}</span><span style="font-size:12px;color:#7D8796">Fri close · {{ t.sec }}</span></div>
+              </div>
+              <sc-if value="{{ t.setup }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;background:#10151C;border:1px solid #1E2631;border-radius:14px">
+                  <div style="width:58px;height:58px;border-radius:50%;background:conic-gradient({{ t.setup.ringC }} {{ t.setup.ringP }}, #1E2631 0);display:grid;place-items:center">
+                    <div style="width:48px;height:48px;border-radius:50%;background:#10151C;display:grid;place-items:center;font-size:19px;font-weight:700;color:{{ t.setup.ringC }}">{{ t.setup.score }}</div>
+                  </div>
+                  <div><div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:#7D8796">TAPE SCORE</div><div style="font-size:14px;font-weight:700;color:{{ t.setup.ringC }};margin-top:4px">{{ t.setup.dirLab }}</div><div style="font-size:12px;color:#A3ADBB;margin-top:2px">{{ t.setup.hz }}</div></div>
+                </div>
+              </sc-if>
+              <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px">
+                <button onClick="{{ t.toggleWatch }}" style="border:1px solid #2A3340;background:#10151C;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3A4553">{{ t.watchLabel }}</button>
+                <button aria-label="Alerts" onClick="{{ goAlerts }}" style="border:1px solid #2A3340;background:#10151C;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3A4553">Set alert</button>
+                <button onClick="{{ t.askAbout }}" style="display:flex;align-items:center;gap:7px;border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer" style-hover="background:#4BE0A6"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>Ask about {{ t.sym }}</button>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+              <div style="flex:1 1 620px;min-width:0;display:flex;flex-direction:column;gap:16px">
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:14px 16px 14px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <div style="display:flex;gap:2px;background:#0C1117;border:1px solid #1E2631;border-radius:8px;padding:2px">
+                      <sc-for list="{{ t.tfs }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.onClick }}" style="border:0;border-radius:6px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }}">{{ f.k }}</button></sc-for>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                      <sc-for list="{{ t.ovs }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:6px;border:1px solid {{ o.bc }};border-radius:7px;padding:5px 9px;font-size:12px;cursor:pointer;background:transparent;color:{{ o.fg }}"><span style="width:14px;height:0;border-top:2px {{ o.dash }} {{ o.sw }}"></span>{{ o.l }}</button></sc-for>
+                    </div>
+                    <span style="margin-left:auto;font-size:12.5px;font-weight:600;color:{{ t.rangeColor }}">{{ t.rangeTxt }}</span>
+                  </div>
+                  <div style="position:relative">
+                    <div style="display:grid;grid-template-columns:88px minmax(0,1fr) 56px">
+                      <div></div>
+                      <div onMouseMove="{{ t.onMove }}" onMouseLeave="{{ t.onLeave }}" style="position:relative;height:290px;cursor:crosshair">
+                        <svg viewBox="0 0 1000 300" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden">
+                          <defs><linearGradient id="tkArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:{{ t.lc }};stop-opacity:.22"></stop><stop offset="1" style="stop-color:{{ t.lc }};stop-opacity:0"></stop></linearGradient></defs>
+                          <sc-for list="{{ t.yl }}" as="g"><line x1="0" x2="1000" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:#18202A;stroke-width:1;vector-effect:non-scaling-stroke"></line></sc-for>
+                          <sc-if value="{{ t.showVol }}"><path d="{{ t.vol }}" style="stroke:#1E2732;stroke-width:{{ t.volW }};vector-effect:non-scaling-stroke"></path></sc-if>
+                          <path d="{{ t.area }}" style="fill:url(#tkArea)"></path>
+                          <sc-if value="{{ t.showS200 }}"><path d="{{ t.s200 }}" style="fill:none;stroke:#7D8796;stroke-width:1.25;vector-effect:non-scaling-stroke"></path></sc-if>
+                          <sc-if value="{{ t.showS50 }}"><path d="{{ t.s50 }}" style="fill:none;stroke:#F5B544;stroke-width:1.25;stroke-dasharray:5 4;vector-effect:non-scaling-stroke"></path></sc-if>
+                          <path d="{{ t.line }}" style="fill:none;stroke:{{ t.lc }};stroke-width:1.9;stroke-linejoin:round;vector-effect:non-scaling-stroke"></path>
+                        </svg>
+                        <sc-for list="{{ t.dots }}" as="d"><span style="position:absolute;left:{{ d.x }};top:{{ d.y }};width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:{{ d.c }};border:2px solid #10151C;pointer-events:none"></span></sc-for>
+                        <sc-if value="{{ t.hover }}" hint-placeholder-val="{{ false }}">
+                          <div style="position:absolute;top:0;bottom:0;left:{{ t.hover.x }};border-left:1px solid #3A4553;pointer-events:none"></div>
+                          <div style="position:absolute;left:{{ t.hover.x }};top:{{ t.hover.y }};width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#0A0D12;border:2px solid {{ t.lc }};pointer-events:none"></div>
+                          <div style="position:absolute;top:6px;left:{{ t.hover.x }};transform:{{ t.hover.tx }};background:#1B222D;border:1px solid #2A3340;border-radius:8px;padding:7px 10px;font-size:11.5px;line-height:1.45;white-space:nowrap;pointer-events:none">
+                            <div style="color:#A3ADBB">{{ t.hover.date }}</div>
+                            <div style="font-size:14px;font-weight:600">{{ t.hover.px }} <span style="color:{{ t.hover.cc }}">{{ t.hover.chg }}</span></div>
+                          </div>
+                        </sc-if>
+                      </div>
+                      <div style="position:relative">
+                        <sc-for list="{{ t.yl }}" as="y"><span style="position:absolute;right:0;top:{{ y.top }};transform:translateY(-50%);font-size:11px;color:#7D8796">{{ y.v }}</span></sc-for>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:88px minmax(0,1fr) 56px;height:24px">
+                      <div></div>
+                      <div style="position:relative"><sc-for list="{{ t.xl }}" as="x"><span style="position:absolute;top:6px;left:{{ x.left }};transform:{{ x.tx }};font-size:11px;color:#7D8796;white-space:nowrap">{{ x.v }}</span></sc-for></div>
+                      <div></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;border-top:1px solid #1E2631">
+                      <sc-for list="{{ t.lanes }}" as="ln" hint-placeholder-count="6">
+                        <div style="display:grid;grid-template-columns:88px minmax(0,1fr) 56px;align-items:center;height:30px;border-bottom:1px solid #151B23">
+                          <span style="font-size:12px;color:#A3ADBB">{{ ln.name }}</span>
+                          <div style="position:relative;height:100%">
+                            <sc-for list="{{ ln.spans }}" as="sp">
+                              <div style="position:absolute;top:50%;left:{{ sp.l }};width:{{ sp.w }};border-top:1.5px dashed #3A4553;pointer-events:none"></div>
+                              <sc-if value="{{ sp.tk }}"><span style="position:absolute;top:50%;left:{{ sp.l }};width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;border:1.5px solid #7D8796;background:#10151C;pointer-events:none"></span></sc-if>
+                            </sc-for>
+                            <sc-for list="{{ ln.marks }}" as="mk">
+                              <button onMouseEnter="{{ mk.onEnter }}" onMouseLeave="{{ mk.onLeave }}" onClick="{{ mk.onClick }}" style="position:absolute;left:{{ mk.x }};top:50%;transform:translate(-50%,-50%);width:{{ mk.size }};height:{{ mk.size }};border-radius:5px;border:{{ mk.border }};background:{{ mk.bg }};color:{{ mk.fg }};font:600 9.5px/1 'Geist Mono',monospace;display:grid;place-items:center;cursor:pointer;padding:0;z-index:{{ mk.z }}">{{ mk.code }}</button>
+                            </sc-for>
+                          </div>
+                          <span style="text-align:right;font-size:11px;color:#7D8796">{{ ln.count }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ t.guide }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:0;bottom:0;left:{{ t.guide }};border-left:1px dashed rgba(232,236,241,.35);pointer-events:none"></div></sc-if>
+                  </div>
+                  <sc-if value="{{ t.det }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px;background:#0C1117;border:1px solid #1A212B;border-radius:10px">
+                      <span style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font:600 12px/1 'Geist Mono',monospace;background:{{ t.det.bg }};color:{{ t.det.fg }}">{{ t.det.code }}</span>
+                      <div style="min-width:0"><div style="font-size:13.5px;font-weight:600;line-height:1.35">{{ t.det.title }}</div><div style="font-size:12px;color:#A3ADBB;margin-top:3px;line-height:1.4">{{ t.det.date }} · {{ t.det.detail }} · {{ t.det.src }}</div></div>
+                      <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:{{ t.det.sc }}">{{ t.det.since }}</div><div style="font-size:11px;color:#7D8796;margin-top:3px;white-space:nowrap">since it went public</div></div>
+                    </div>
+                  </sc-if>
+                </section>
+
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 6px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px"><h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">{{ t.evTitle }}</h2><span style="font-size:12px;color:#7D8796">Bars show how much each source moves the score</span></div>
+                  <sc-for list="{{ t.ev }}" as="e" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:28px 120px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #161C25">
+                      <span style="width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:600 11px/1 'Geist Mono',monospace;background:{{ e.bg }};color:{{ e.fg }}">{{ e.k }}</span>
+                      <div><div style="font-size:13px;font-weight:600">{{ e.name }}</div><div style="display:flex;gap:3px;margin-top:6px"><sc-for list="{{ e.bars }}" as="b"><span style="width:14px;height:4px;border-radius:2px;background:{{ b.bg }}"></span></sc-for></div></div>
+                      <div style="min-width:0"><div style="font-size:13px;line-height:1.4;color:#DDE3EA">{{ e.txt }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:3px">{{ e.sub }}</div></div>
+                      <span style="font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 7px;border-radius:5px;background:{{ e.bg }};color:{{ e.fg }}">{{ e.lab }}</span>
+                    </div>
+                  </sc-for>
+                </section>
+
+                <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+                  <sc-for list="{{ t.stats }}" as="x" hint-placeholder-count="6"><div style="background:#10151C;border:1px solid #1E2631;border-radius:12px;padding:12px 14px"><div style="font-size:11.5px;color:#7D8796">{{ x.k }}</div><div style="font-size:16px;font-weight:600;margin-top:6px">{{ x.v }}</div></div></sc-for>
+                </section>
+              </div>
+
+              <div style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:16px;position:sticky;top:84px">
+                <sc-if value="{{ t.setup }}" hint-placeholder-val="{{ false }}">
+                  <section style="background:#10151C;border:1px solid #2A3340;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">The setup</h2><span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;background:{{ t.setup.dirBg }};color:{{ t.setup.dirFg }};border-radius:5px;padding:4px 7px">{{ t.setup.dirLab }}</span></div>
+                    <p style="margin:0;font-size:14px;line-height:1.55;color:#DDE3EA;text-wrap:pretty">{{ t.setup.thesis }}</p>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#A3ADBB"><span style="width:7px;height:7px;border-radius:50%;background:#F5B544"></span>{{ t.setup.cat }}</div>
+                    <sc-if value="{{ t.setup.hasLv }}">
+                      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+                        <sc-for list="{{ t.setup.lv }}" as="l"><div style="background:#0C1117;border:1px solid #1A212B;border-radius:9px;padding:9px 10px"><div style="font-size:11px;color:#7D8796">{{ l.k }}</div><div style="font-size:12.5px;font-weight:600;margin-top:4px;color:{{ l.c }}">{{ l.v }}</div></div></sc-for>
+                      </div>
+                    </sc-if>
+                    <div style="height:1px;background:#1E2631"></div>
+                    <div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:#7D8796">HOW TO PLAY IT</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ t.setup.tabs }}" as="b"><button onClick="{{ b.onClick }}" style="border:1px solid {{ b.bc }};background:{{ b.bg }};color:{{ b.fg }};border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer">{{ b.l }}</button></sc-for></div>
+                    <div>
+                      <div style="font-size:15px;font-weight:600">{{ t.setup.play.name }}</div>
+                      <div style="display:flex;flex-direction:column;gap:3px;margin-top:6px"><sc-for list="{{ t.setup.play.legs }}" as="lg"><div style="font-size:12.5px;color:#A3ADBB">{{ lg }}</div></sc-for></div>
+                    </div>
+                    <sc-if value="{{ t.setup.play.hasFacts }}">
+                      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#1A212B;border:1px solid #1A212B;border-radius:10px;overflow:hidden">
+                        <sc-for list="{{ t.setup.play.facts }}" as="x"><div style="background:#0C1117;padding:10px"><div style="font-size:11px;color:#7D8796">{{ x.k }}</div><div style="font-size:13px;font-weight:600;margin-top:4px">{{ x.v }}</div></div></sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ t.setup.hasPay }}">
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:11px;color:#7D8796;margin-bottom:6px"><span>Profit / loss at expiry, per contract</span><span style="color:#1FD18A;font-weight:600">{{ t.setup.play.pop }}</span></div>
+                        <div style="position:relative;height:150px;background:#0C1117;border:1px solid #1A212B;border-radius:10px;overflow:hidden">
+                          <svg viewBox="0 0 1000 150" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+                            <defs><clipPath id="payUp"><rect x="0" y="0" width="1000" height="{{ t.setup.pay.zy }}"></rect></clipPath><clipPath id="payDn"><rect x="0" y="{{ t.setup.pay.zy }}" width="1000" height="150"></rect></clipPath></defs>
+                            <path d="{{ t.setup.pay.area }}" style="fill:rgba(31,209,138,.22);clip-path:url(#payUp)"></path>
+                            <path d="{{ t.setup.pay.area }}" style="fill:rgba(255,93,93,.2);clip-path:url(#payDn)"></path>
+                            <line x1="0" x2="1000" y1="{{ t.setup.pay.zy }}" y2="{{ t.setup.pay.zy }}" style="stroke:#3A4553;stroke-width:1;vector-effect:non-scaling-stroke"></line>
+                            <path d="{{ t.setup.pay.line }}" style="fill:none;stroke:#E8ECF1;stroke-width:1.75;stroke-linejoin:round;vector-effect:non-scaling-stroke"></path>
+                          </svg>
+                          <div style="position:absolute;top:0;bottom:0;left:{{ t.setup.pay.spotX }};border-left:1px dashed #A3ADBB"></div>
+                          <span style="position:absolute;bottom:6px;left:{{ t.setup.pay.spotX }};transform:translateX(4px);font-size:10.5px;color:#C3CBD6;white-space:nowrap">{{ t.setup.pay.spotL }}</span>
+                          <sc-for list="{{ t.setup.pay.bes }}" as="b"><div style="position:absolute;top:0;bottom:0;left:{{ b.x }};border-left:1px solid #F5B544;opacity:.7"></div><span style="position:absolute;top:6px;left:{{ b.x }};transform:translateX(4px);font-size:10.5px;color:#F5B544;white-space:nowrap">{{ b.l }}</span></sc-for>
+                          <span style="position:absolute;top:6px;left:8px;font-size:10.5px;font-weight:600;color:#3FE0A0">{{ t.setup.pay.top }}</span>
+                          <span style="position:absolute;bottom:6px;right:8px;font-size:10.5px;font-weight:600;color:#FF7A7A">{{ t.setup.pay.bot }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#7D8796;margin-top:5px"><span>{{ t.setup.pay.lo }}</span><span>{{ t.sym }} price at expiry</span><span>{{ t.setup.pay.hi }}</span></div>
+                      </div>
+                    </sc-if>
+                    <div style="display:flex;gap:8px">
+                      <button onClick="{{ t.setup.onTrack }}" style="flex:1;border:0;background:{{ t.setup.trackBg }};color:{{ t.setup.trackFg }};border-radius:9px;padding:11px 12px;font-size:13px;font-weight:700;cursor:pointer">{{ t.setup.trackLabel }}</button>
+                      <button aria-label="Alerts" onClick="{{ goAlerts }}" style="border:1px solid #2A3340;background:transparent;border-radius:9px;padding:11px 12px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3A4553">Alert at entry</button>
+                    </div>
+                    <div style="padding:12px;background:#0C1117;border:1px solid #1A212B;border-radius:10px">
+                      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:#7D8796;margin-bottom:8px">WHAT WOULD BREAK IT</div>
+                      <sc-for list="{{ t.setup.risks }}" as="x"><div style="display:grid;grid-template-columns:14px 1fr;gap:6px;font-size:12.5px;line-height:1.5;color:#C3CBD6;margin-bottom:5px"><span style="color:#F5B544">!</span><span>{{ x }}</span></div></sc-for>
+                    </div>
+                    <div style="font-size:11px;color:#7D8796;line-height:1.45">Prices are estimates from Friday’s close and implied volatility. Not a recommendation — size positions to what you can afford to lose.</div>
+                  </section>
+                </sc-if>
+                <sc-if value="{{ t.noSetup }}" hint-placeholder-val="{{ false }}">
+                  <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">
+                    <h2 style="margin:0;font:600 17px/1.2 Geist,sans-serif">No setup yet</h2>
+                    <p style="margin:0;font-size:13.5px;line-height:1.55;color:#A3ADBB">Tape hasn’t found enough independent signals agreeing on {{ t.sym }}. Follow it and you’ll get an alert the moment they line up.</p>
+                    <button onClick="{{ t.toggleWatch }}" style="border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:11px 12px;font-size:13px;font-weight:700;cursor:pointer">{{ t.watchLabel }}</button>
+                  </section>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ is.smart }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Smart money" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px">
+              <div style="flex:1 1 480px;min-width:0">
+                <h1 style="margin:0;font:600 30px/1.15 Geist,sans-serif;letter-spacing:-.025em">Smart money</h1>
+                <p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:#A3ADBB;max-width:72ch;text-wrap:pretty">Congress, insiders, hedge funds and big options bets — cleaned up and measured from the moment each one became public, so every return shown is one you could actually have caught.</p>
+              </div>
+              <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:10px;padding:3px">
+                <sc-for list="{{ sm.tabs }}" as="tb" hint-placeholder-count="4"><button onClick="{{ tb.onClick }}" style="display:flex;align-items:center;gap:7px;border:0;border-radius:7px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer;background:{{ tb.bg }};color:{{ tb.fg }};box-shadow:{{ tb.sh }}">{{ tb.l }}<span style="font-size:11px;color:#7D8796">{{ tb.n }}</span></button></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:linear-gradient(120deg,rgba(31,209,138,.08),rgba(31,209,138,.02));border:1px solid rgba(31,209,138,.22);border-radius:12px">
+              <svg width="16" height="16" viewBox="0 0 24 24" style="flex:none;fill:#1FD18A;margin-top:2px"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>
+              <p style="margin:0;font-size:14px;line-height:1.55;color:#DDE3EA;text-wrap:pretty"><b style="font-weight:600;color:#3FE0A0">Tape’s read · </b>{{ sm.read }}</p>
+            </div>
+
+            <sc-if value="{{ sm.isCong }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+                <section style="flex:1 1 700px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+                  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px">
+                    <div style="display:flex;gap:2px;background:#0C1117;border:1px solid #1E2631;border-radius:8px;padding:2px"><sc-for list="{{ sm.chs }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+                    <div style="display:flex;gap:2px;background:#0C1117;border:1px solid #1E2631;border-radius:8px;padding:2px"><sc-for list="{{ sm.sides }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+                    <button onClick="{{ sm.toggleRel }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A3340;border-radius:8px;padding:6px 10px;background:transparent;font-size:12.5px;cursor:pointer"><span style="width:15px;height:15px;border-radius:4px;border:1.5px solid {{ sm.relBc }};display:grid;place-items:center;font-size:10px;font-weight:800;color:#03140C;background:{{ sm.relBox }}">{{ sm.relCheck }}</span>Committee overlap only</button>
+                    <span style="margin-left:auto;font-size:12px;color:#7D8796">{{ sm.congCount }}</span>
+                  </div>
+                  <div style="overflow-x:auto"><div style="min-width:960px">
+                    <div style="display:grid;grid-template-columns:minmax(170px,1.4fr) minmax(140px,1fr) 58px 120px 150px 84px 92px 84px;gap:12px;padding:10px 16px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796;border-top:1px solid #1E2631"><span>MEMBER</span><span>COMMITTEE</span><span>TICKER</span><span>TRADE</span><span>TRADED → DISCLOSED</span><span style="text-align:right">SINCE PUBLIC</span><span>SETUP</span><span></span></div>
+                    <sc-for list="{{ sm.cong }}" as="r" hint-placeholder-count="8">
+                      <div style="display:grid;grid-template-columns:minmax(170px,1.4fr) minmax(140px,1fr) 58px 120px 150px 84px 92px 84px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid #161C25" style-hover="background:#121821">
+                        <div style="min-width:0"><div style="font-size:13.5px;font-weight:600">{{ r.who }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:4px">{{ r.tag }}</div></div>
+                        <div style="min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start"><span style="font-size:12.5px;color:#C3CBD6">{{ r.com }}</span><sc-if value="{{ r.rel }}"><span style="font-size:10px;font-weight:700;letter-spacing:.05em;background:rgba(245,181,68,.14);color:#F5B544;padding:3px 6px;border-radius:4px">COMMITTEE OVERLAP</span></sc-if></div>
+                        <span onClick="{{ r.onSym }}" style="font:600 13px/1 'Geist Mono',monospace;cursor:pointer;color:#E8ECF1" style-hover="color:#1FD18A">{{ r.sym }}</span>
+                        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start"><span style="font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:4px;background:{{ r.sideBg }};color:{{ r.sideFg }}">{{ r.side }}</span><span style="font-size:12px;color:#C3CBD6">{{ r.amt }}</span></div>
+                        <div style="font-size:12px;line-height:1.55;color:#C3CBD6"><div>{{ r.dates }}</div><div style="font-size:11px;color:{{ r.lagC }}">{{ r.lag }}</div></div>
+                        <span style="font-size:13px;font-weight:700;color:{{ r.sc }};text-align:right">{{ r.since }}</span>
+                        <div><sc-if value="{{ r.hasSu }}"><button onClick="{{ r.onSu }}" style="display:flex;align-items:center;gap:6px;border:1px solid #2A3340;background:transparent;border-radius:7px;padding:5px 8px;font-size:11.5px;font-weight:600;cursor:pointer;color:#C3CBD6" style-hover="border-color:#1FD18A"><span style="font-weight:800;color:{{ r.suC }}">{{ r.suScore }}</span>Setup</button></sc-if></div>
+                        <button onClick="{{ r.onFollow }}" style="border:1px solid {{ r.flBc }};border-radius:7px;padding:6px 0;font-size:11.5px;font-weight:600;cursor:pointer;background:{{ r.flBg }};color:{{ r.flFg }}">{{ r.fl }}</button>
+                      </div>
+                    </sc-for>
+                  </div></div>
+                </section>
+                <div style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:16px">
+                  <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 8px">
+                    <h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Who’s actually good at this</h2>
+                    <div style="font-size:12px;color:#7D8796;margin:6px 0 10px;line-height:1.45">Return vs. the S&amp;P 500, 90 days after each disclosure · last 12 months</div>
+                    <sc-for list="{{ sm.lead }}" as="l" hint-placeholder-count="5">
+                      <div style="display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #161C25">
+                        <span style="font-size:12px;color:#7D8796">{{ l.rank }}</span>
+                        <div style="min-width:0">
+                          <div style="font-size:13.5px;font-weight:600">{{ l.who }} <span style="font-size:11.5px;font-weight:500;color:#7D8796">{{ l.tag }}</span></div>
+                          <div style="display:flex;align-items:center;gap:8px;margin-top:7px"><div style="flex:1;height:5px;background:#1A212B;border-radius:3px;overflow:hidden"><div style="height:100%;width:{{ l.w }};background:#1FD18A"></div></div><span style="font-size:12px;font-weight:700;color:#1FD18A">{{ l.ex }}</span></div>
+                          <div style="font-size:11.5px;color:#7D8796;margin-top:5px">{{ l.n }} · {{ l.hit }}</div>
+                        </div>
+                        <button onClick="{{ l.onFollow }}" style="border:1px solid {{ l.flBc }};border-radius:7px;padding:6px 9px;font-size:11.5px;font-weight:600;cursor:pointer;background:{{ l.flBg }};color:{{ l.flFg }}">{{ l.fl }}</button>
+                      </div>
+                    </sc-for>
+                  </section>
+                  <div style="font-size:12.5px;line-height:1.55;color:#A3ADBB;padding:0 4px"><b style="font-weight:600;color:#E8ECF1">How to read this.</b> Members must disclose trades within 45 days, and only as dollar ranges. Tape parses every House and Senate filing, flags committee overlap, and never shows a return from the trade date — you couldn’t have seen it then.</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ sm.isIns }}" hint-placeholder-val="{{ false }}">
+              <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px">
+                  <button onClick="{{ sm.togglePlans }}" style="display:flex;align-items:center;gap:8px;border:1px solid #2A3340;border-radius:8px;padding:6px 10px;background:transparent;font-size:12.5px;cursor:pointer"><span style="width:15px;height:15px;border-radius:4px;border:1.5px solid {{ sm.planBc }};display:grid;place-items:center;font-size:10px;font-weight:800;color:#03140C;background:{{ sm.planBox }}">{{ sm.planCheck }}</span>Show pre-planned 10b5-1 sales</button>
+                  <span style="font-size:12px;color:#7D8796">Open-market buys and clusters are the signal. Scheduled sales and option exercises are noise, so they’re hidden by default.</span>
+                  <span style="margin-left:auto;font-size:12px;color:#7D8796">{{ sm.insCount }}</span>
+                </div>
+                <div style="overflow-x:auto"><div style="min-width:940px">
+                  <div style="display:grid;grid-template-columns:minmax(140px,1.1fr) minmax(170px,1.3fr) 140px 80px 76px 60px 80px 92px;gap:12px;padding:10px 16px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796;border-top:1px solid #1E2631"><span>COMPANY</span><span>INSIDER</span><span>TRADE</span><span style="text-align:right">SHARES</span><span style="text-align:right">VALUE</span><span>FILED</span><span style="text-align:right">SINCE</span><span>SETUP</span></div>
+                  <sc-for list="{{ sm.ins }}" as="r" hint-placeholder-count="8">
+                    <div style="display:grid;grid-template-columns:minmax(140px,1.1fr) minmax(170px,1.3fr) 140px 80px 76px 60px 80px 92px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid #161C25;opacity:{{ r.op }}" style-hover="background:#121821">
+                      <div style="min-width:0"><span onClick="{{ r.onSym }}" style="font:600 13px/1 'Geist Mono',monospace;cursor:pointer" style-hover="color:#1FD18A">{{ r.sym }}</span><div style="font-size:12px;color:#7D8796;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div></div>
+                      <div style="min-width:0"><div style="font-size:13.5px;font-weight:600">{{ r.who }}</div><div style="font-size:12px;color:#7D8796;margin-top:3px">{{ r.role }}</div></div>
+                      <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:4px;background:{{ r.sideBg }};color:{{ r.sideFg }}">{{ r.side }}</span><sc-if value="{{ r.cluster }}"><span style="font-size:10px;font-weight:700;background:rgba(245,181,68,.14);color:#F5B544;padding:3px 5px;border-radius:4px">CLUSTER</span></sc-if><sc-if value="{{ r.plan }}"><span style="font-size:10px;font-weight:600;border:1px solid #2A3340;color:#A3ADBB;padding:2px 5px;border-radius:4px">10b5-1</span></sc-if></div>
+                      <span style="font-size:12.5px;text-align:right;color:#C3CBD6">{{ r.sh }}</span>
+                      <span style="font-size:12.5px;font-weight:700;text-align:right">{{ r.val }}</span>
+                      <span style="font-size:12px;color:#A3ADBB">{{ r.date }}</span>
+                      <span style="font-size:13px;font-weight:700;color:{{ r.sc }};text-align:right">{{ r.since }}</span>
+                      <div><sc-if value="{{ r.hasSu }}"><button onClick="{{ r.onSu }}" style="display:flex;align-items:center;gap:6px;border:1px solid #2A3340;background:transparent;border-radius:7px;padding:5px 8px;font-size:11.5px;font-weight:600;cursor:pointer;color:#C3CBD6" style-hover="border-color:#1FD18A"><span style="font-weight:800;color:{{ r.suC }}">{{ r.suScore }}</span>Setup</button></sc-if></div>
+                    </div>
+                  </sc-for>
+                </div></div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ sm.isFund }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+                <section style="flex:1 1 680px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+                  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px"><span style="font-size:13px;font-weight:600">Q2 2026 filings · 40 top-quartile funds</span><span style="margin-left:auto;font-size:12px;color:#7D8796">Q3 filings due Nov 16</span></div>
+                  <div style="overflow-x:auto"><div style="min-width:840px">
+                    <div style="display:grid;grid-template-columns:minmax(170px,1.4fr) 84px 60px 80px 70px 110px 76px 92px;gap:12px;padding:10px 16px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796;border-top:1px solid #1E2631"><span>FUND</span><span>MOVE</span><span>TICKER</span><span style="text-align:right">VALUE</span><span style="text-align:right">OF FUND</span><span>CHANGE</span><span style="text-align:right">SINCE</span><span>SETUP</span></div>
+                    <sc-for list="{{ sm.funds }}" as="r" hint-placeholder-count="8">
+                      <div style="display:grid;grid-template-columns:minmax(170px,1.4fr) 84px 60px 80px 70px 110px 76px 92px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid #161C25" style-hover="background:#121821">
+                        <span style="font-size:13.5px;font-weight:600">{{ r.fund }}</span>
+                        <span style="justify-self:start;font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:4px;background:{{ r.actBg }};color:{{ r.actFg }}">{{ r.act }}</span>
+                        <span onClick="{{ r.onSym }}" style="font:600 13px/1 'Geist Mono',monospace;cursor:pointer" style-hover="color:#1FD18A">{{ r.sym }}</span>
+                        <span style="font-size:12.5px;font-weight:700;text-align:right">{{ r.val }}</span>
+                        <span style="font-size:12.5px;text-align:right;color:#C3CBD6">{{ r.pct }}</span>
+                        <span style="font-size:12.5px;color:#C3CBD6">{{ r.chg }}</span>
+                        <span style="font-size:13px;font-weight:700;color:{{ r.sc }};text-align:right">{{ r.since }}</span>
+                        <div><sc-if value="{{ r.hasSu }}"><button onClick="{{ r.onSu }}" style="display:flex;align-items:center;gap:6px;border:1px solid #2A3340;background:transparent;border-radius:7px;padding:5px 8px;font-size:11.5px;font-weight:600;cursor:pointer;color:#C3CBD6" style-hover="border-color:#1FD18A"><span style="font-weight:800;color:{{ r.suC }}">{{ r.suScore }}</span>Setup</button></sc-if></div>
+                      </div>
+                    </sc-for>
+                  </div></div>
+                </section>
+                <section style="flex:1 1 300px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 8px">
+                  <h2 style="margin:0 0 8px;font:600 16px/1.2 Geist,sans-serif">Where the big money is rotating</h2>
+                  <sc-for list="{{ sm.cons }}" as="c"><div style="display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:11px 0;border-top:1px solid #161C25"><span style="font-size:13.5px;font-weight:600">{{ c.k }}</span><span style="font-size:12px;font-weight:700;color:{{ c.c }}">{{ c.v }}</span><span style="grid-column:1/-1;font-size:12px;line-height:1.45;color:#A3ADBB">{{ c.n }}</span></div></sc-for>
+                  <div style="font-size:11.5px;color:#7D8796;line-height:1.45;padding:10px 0 8px;border-top:1px solid #161C25">13F filings arrive up to 45 days after quarter-end. Use them as context, not timing.</div>
+                </section>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ sm.isFlow }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px">
+                  <sc-for list="{{ fl.stats }}" as="x" hint-placeholder-count="3"><div style="background:#10151C;border:1px solid #1E2631;border-radius:12px;padding:13px 15px"><div style="font-size:12px;color:#A3ADBB">{{ x.k }}</div><div style="font-size:22px;font-weight:600;margin-top:7px;letter-spacing:-.02em">{{ x.v }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:5px">{{ x.n }}</div></div></sc-for>
+                  <div style="grid-column:span 2;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:12px;padding:13px 15px 9px;display:flex;flex-direction:column;gap:6px">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:12px;color:#A3ADBB">Market tide · net call minus put premium, Friday</span><span style="font-size:13px;font-weight:700;color:#1FD18A">{{ fl.tideEnd }}</span></div>
+                    <div style="position:relative;height:58px"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%"><line x1="0" x2="1000" y1="{{ fl.tideZero }}" y2="{{ fl.tideZero }}" style="stroke:#2A3340;stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke"></line><path d="{{ fl.tideArea }}" style="fill:rgba(31,209,138,.14)"></path><path d="{{ fl.tideLine }}" style="fill:none;stroke:#1FD18A;stroke-width:1.5;vector-effect:non-scaling-stroke"></path></svg></div>
+                    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#7D8796"><span>9:30</span><span>12:00</span><span>4:00</span></div>
+                  </div>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+                  <sc-for list="{{ fl.filters }}" as="f" hint-placeholder-count="7"><button onClick="{{ f.onClick }}" style="border:1px solid {{ f.bc }};border-radius:16px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }}">{{ f.l }}</button></sc-for>
+                  <span style="margin-left:auto;font-size:12px;color:#7D8796">{{ fl.count }}</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+                  <section style="flex:1 1 620px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+                    <div style="overflow-x:auto"><div style="min-width:800px">
+                      <div style="display:grid;grid-template-columns:46px 54px minmax(120px,1fr) 42px 52px 72px 54px minmax(170px,1.4fr);gap:10px;padding:11px 16px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796"><span>TIME</span><span>TICKER</span><span>CONTRACT</span><span>SIDE</span><span>TYPE</span><span style="text-align:right">PREMIUM</span><span style="text-align:right">VOL/OI</span><span>TAPE’S READ</span></div>
+                      <sc-for list="{{ fl.rows }}" as="r" hint-placeholder-count="10">
+                        <div onClick="{{ r.onClick }}" style="display:grid;grid-template-columns:46px 54px minmax(120px,1fr) 42px 52px 72px 54px minmax(170px,1.4fr);gap:10px;align-items:center;padding:11px 16px;border-top:1px solid #161C25;cursor:pointer;background:{{ r.bg }}" style-hover="background:#121821">
+                          <span style="font-size:11.5px;color:#7D8796">{{ r.tm }}</span>
+                          <span style="font:600 12.5px/1 'Geist Mono',monospace">{{ r.sym }}</span>
+                          <span style="font-size:12.5px;color:#C3CBD6">{{ r.contract }}</span>
+                          <span style="font-size:11.5px;font-weight:600;color:{{ r.sideC }}">{{ r.side }}</span>
+                          <span style="font-size:12px;color:#A3ADBB">{{ r.type }}</span>
+                          <span style="font-size:13px;font-weight:700;text-align:right">{{ r.prem }}</span>
+                          <span style="font-size:12px;text-align:right;color:{{ r.voiC }};font-weight:{{ r.voiW }}">{{ r.voi }}</span>
+                          <span style="display:flex;align-items:center;gap:7px;min-width:0"><span style="flex:none;width:7px;height:7px;border-radius:50%;background:{{ r.sc }}"></span><span style="font-size:12.5px;color:#C3CBD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.read }}</span></span>
+                        </div>
+                      </sc-for>
+                      <sc-if value="{{ fl.empty }}" hint-placeholder-val="{{ false }}"><div style="padding:26px 16px;font-size:13.5px;color:#A3ADBB;border-top:1px solid #161C25">Nothing from Friday matches every filter. Turn one off.</div></sc-if>
+                    </div></div>
+                  </section>
+                  <sc-if value="{{ fl.d }}" hint-placeholder-val="{{ false }}">
+                    <aside style="flex:0 1 380px;min-width:300px;background:#10151C;border:1px solid #2A3340;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:13px;position:sticky;top:84px">
+                      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                        <div><div style="font:600 21px/1 'Geist Mono',monospace">{{ fl.d.sym }}</div><div style="font-size:13px;margin-top:7px;color:#C3CBD6">{{ fl.d.contract }}</div></div>
+                        <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:4px 7px;border-radius:5px;background:{{ fl.d.stBg }};color:{{ fl.d.stFg }}">{{ fl.d.stLab }}</span>
+                      </div>
+                      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:#7D8796">IN PLAIN ENGLISH</div>
+                      <p style="margin:-4px 0 0;font-size:14px;line-height:1.55;color:#DDE3EA;text-wrap:pretty">{{ fl.d.text }}</p>
+                      <sc-if value="{{ fl.d.crosses }}"><div style="font-size:12.5px;line-height:1.45;padding:9px 11px;background:rgba(245,181,68,.12);color:#F5D08A;border-radius:8px"><b style="font-weight:700;color:#F5B544">Spans earnings.</b> {{ fl.d.sym }} reports {{ fl.d.er }}, before this contract expires.</div></sc-if>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1A212B;border:1px solid #1A212B;border-radius:10px;overflow:hidden">
+                        <sc-for list="{{ fl.d.facts }}" as="x"><div style="background:#0C1117;padding:10px"><div style="font-size:11px;color:#7D8796">{{ x.k }}</div><div style="font-size:13.5px;font-weight:600;margin-top:4px">{{ x.v }}</div><div style="font-size:11px;color:#7D8796;margin-top:2px">{{ x.n }}</div></div></sc-for>
+                      </div>
+                      <sc-if value="{{ fl.d.su }}">
+                        <div onClick="{{ fl.d.su.on }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;background:#0C1117;border:1px solid #1A212B;border-radius:10px;cursor:pointer" style-hover="border-color:#1FD18A">
+                          <span style="font-size:15px;font-weight:800;color:{{ fl.d.su.c }}">{{ fl.d.su.score }}</span>
+                          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Tape’s {{ fl.d.sym }} setup: {{ fl.d.su.name }}</div><div style="font-size:11.5px;color:#A3ADBB;margin-top:2px">{{ fl.d.su.line }}</div></div>
+                          <span style="color:#1FD18A;font-weight:700">→</span>
+                        </div>
+                      </sc-if>
+                      <div style="font-size:11.5px;color:#7D8796;line-height:1.45">Flow shows what traded, not who traded it or why. A big call buy can be one leg of a hedge.</div>
+                    </aside>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is.news }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="News" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px">
+              <div style="flex:1 1 480px;min-width:0">
+                <h1 style="margin:0;font:600 30px/1.15 Geist,sans-serif;letter-spacing:-.025em">News that moves money</h1>
+                <p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:#A3ADBB;max-width:72ch;text-wrap:pretty">Tape reads about 1,300 articles a day, merges duplicates, and keeps only stories with a measurable price impact — then tells you what each one means for your positions.</p>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ nw.scopes }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+                <div style="display:flex;gap:2px;background:#10151C;border:1px solid #1E2631;border-radius:9px;padding:3px"><sc-for list="{{ nw.imps }}" as="c"><button onClick="{{ c.onClick }}" style="border:0;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}">{{ c.l }}</button></sc-for></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+              <div style="flex:1 1 600px;min-width:0;display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ nw.list }}" as="n" hint-placeholder-count="5">
+                  <article style="display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:18px;background:#10151C;border:1px solid #1E2631;border-radius:14px">
+                    <div style="display:flex;flex-direction:column;gap:7px">
+                      <div style="display:flex;gap:3px"><sc-for list="{{ n.bars }}" as="b"><span style="width:14px;height:6px;border-radius:2px;background:{{ b.bg }}"></span></sc-for></div>
+                      <span style="font-size:11px;font-weight:600;color:{{ n.impC }}">{{ n.imp }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:9px;min-width:0">
+                      <h3 style="margin:0;font-size:16.5px;font-weight:600;line-height:1.35;letter-spacing:-.01em;text-wrap:pretty">{{ n.h }}</h3>
+                      <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#0C1117;border:1px solid #1A212B;border-radius:10px"><svg width="13" height="13" viewBox="0 0 24 24" style="flex:none;fill:#1FD18A;margin-top:3px"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg><span style="font-size:13.5px;line-height:1.5;color:#DDE3EA">{{ n.what }}</span></div>
+                      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+                        <sc-for list="{{ n.syms }}" as="sy"><button onClick="{{ sy.onClick }}" style="display:flex;align-items:center;gap:6px;border:1px solid #1E2631;background:#0C1117;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer" style-hover="border-color:#2F3B49"><span style="font:600 11.5px/1 'Geist Mono',monospace">{{ sy.sym }}</span><span style="font-weight:600;color:{{ sy.c }}">{{ sy.chg }}</span></button></sc-for>
+                        <sc-if value="{{ n.hasExp }}"><span style="font-size:12px;font-weight:600;color:#F5B544;background:rgba(245,181,68,.12);border-radius:6px;padding:5px 8px">{{ n.exp }}</span></sc-if>
+                      </div>
+                      <div style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:#7D8796"><span>{{ n.hist }}</span><span>{{ n.meta }}</span><sc-if value="{{ n.setup }}"><span onClick="{{ n.setup.on }}" style="margin-left:auto;color:#1FD18A;font-weight:600;cursor:pointer">{{ n.setup.label }} →</span></sc-if></div>
+                    </div>
+                  </article>
+                </sc-for>
+              </div>
+              <div style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:16px">
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 8px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Catalyst calendar</h2><span style="font-size:12px;color:#7D8796">Next 3 weeks</span></div>
+                  <sc-for list="{{ nw.cal }}" as="d" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:42px 1fr;gap:12px;padding:10px 0;border-top:1px solid #161C25">
+                      <div><div style="font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796">{{ d.dow }}</div><div style="font-size:18px;font-weight:600;margin-top:2px">{{ d.dom }}</div></div>
+                      <div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+                        <sc-for list="{{ d.ev }}" as="e"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;line-height:1.35"><span style="font-size:11.5px;color:#7D8796">{{ e.t }} · </span>{{ e.x }}</span><sc-if value="{{ e.tag }}"><span style="align-self:flex-start;font-size:11px;font-weight:600;color:{{ e.tc }};background:{{ e.tb }};border-radius:5px;padding:3px 6px">{{ e.tag }}</span></sc-if></div></sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </section>
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 8px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Market odds</h2><span style="font-size:12px;color:#7D8796">Kalshi + Polymarket</span></div>
+                  <sc-for list="{{ h.odds }}" as="o" hint-placeholder-count="4">
+                    <div style="display:flex;flex-direction:column;gap:7px;padding:11px 0;border-top:1px solid #161C25">
+                      <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.3"><span style="color:#C3CBD6">{{ o.q }}</span><span style="font-size:15px;font-weight:700">{{ o.p }}%</span></div>
+                      <div style="display:flex;align-items:center;gap:10px"><div style="flex:1;height:5px;background:#1A212B;border-radius:3px;overflow:hidden"><div style="height:100%;width:{{ o.w }};background:#1FD18A;border-radius:3px"></div></div><span style="font-size:11.5px;font-weight:600;color:{{ o.dc }};min-width:44px;text-align:right">{{ o.d }}</span></div>
+                    </div>
+                  </sc-for>
+                </section>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ is.portfolio }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Portfolio" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px">
+              <div style="flex:1 1 440px;min-width:0">
+                <h1 style="margin:0;font:600 30px/1.15 Geist,sans-serif;letter-spacing:-.025em">Portfolio</h1>
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px"><span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#C3CBD6;background:#10151C;border:1px solid #1E2631;border-radius:7px;padding:5px 9px"><span style="width:7px;height:7px;border-radius:50%;background:#1FD18A"></span>{{ portfolioLabel }}</span><span style="font-size:12.5px;color:#7D8796">No brokerage login, ever. Tape only sees what you import.</span></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ pf.toggleImport }}" style="border:1px solid #2A3340;background:#10151C;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#3A4553">{{ pf.importLabel }}</button>
+                <button onClick="{{ pf.toggleImport }}" style="border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer">+ Add holdings</button>
+              </div>
+            </div>
+            <sc-if value="{{ pf.importing }}" hint-placeholder-val="{{ false }}">
+              <section style="background:#10151C;border:1px dashed #2F3B49;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Bring your holdings</h2><span style="font-size:12px;color:#7D8796">{{ pf.importNote }}</span></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+                  <sc-for list="{{ pf.methods }}" as="m"><button onClick="{{ m.onClick }}" style="text-align:left;display:flex;flex-direction:column;gap:8px;padding:16px;background:#0C1117;border:1px solid #1E2631;border-radius:12px;cursor:pointer" style-hover="border-color:#1FD18A"><span style="font-size:14px;font-weight:600">{{ m.k }}</span><span style="font-size:12.5px;line-height:1.45;color:#A3ADBB">{{ m.n }}</span><span style="font-size:12px;font-weight:600;color:#1FD18A;margin-top:2px">{{ m.a }}</span></button></sc-for>
+                </div>
+              </section>
+            </sc-if>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px">
+              <sc-for list="{{ pf.kpis }}" as="x" hint-placeholder-count="5"><div style="background:#10151C;border:1px solid #1E2631;border-radius:12px;padding:14px 16px"><div style="font-size:12px;color:#A3ADBB">{{ x.k }}</div><div style="font-size:23px;font-weight:600;margin-top:8px;letter-spacing:-.02em;color:{{ x.c }}">{{ x.v }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:5px">{{ x.n }}</div></div></sc-for>
+            </div>
+
+            <section style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap"><h2 style="margin:0;font:600 18px/1.2 Geist,sans-serif;letter-spacing:-.01em">Ideas for your money</h2><span style="font-size:12.5px;color:#7D8796">Built from your holdings and this week’s setups</span></div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+                <sc-for list="{{ pf.ideas }}" as="i" hint-placeholder-count="4">
+                  <div style="display:flex;flex-direction:column;gap:10px;padding:16px;background:#10151C;border:1px solid #1E2631;border-radius:14px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:{{ i.c }};background:{{ i.bg }};border-radius:5px;padding:4px 7px">{{ i.tag }}</span><span style="font:600 12px/1 'Geist Mono',monospace;color:#A3ADBB">{{ i.sym }}</span></div>
+                    <div style="font-size:15px;font-weight:600;line-height:1.35;letter-spacing:-.01em">{{ i.k }}</div>
+                    <div style="font-size:13px;line-height:1.5;color:#A3ADBB;text-wrap:pretty">{{ i.n }}</div>
+                    <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid #161C25"><span style="font-size:13px;font-weight:700;color:{{ i.vc }}">{{ i.v }}</span><span onClick="{{ i.on }}" style="font-size:12.5px;font-weight:600;color:#1FD18A;cursor:pointer">{{ i.a }} →</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+              <section style="flex:1 1 640px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;overflow:hidden">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 10px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Holdings</h2><span style="font-size:12px;color:#7D8796">Tape Score shows where signals point for each position</span></div>
+                <div style="overflow-x:auto"><div style="min-width:860px">
+                  <div style="display:grid;grid-template-columns:minmax(150px,1.3fr) 62px 86px 96px 110px 74px 120px 112px;gap:12px;padding:9px 16px;font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796;border-top:1px solid #1E2631"><span>HOLDING</span><span style="text-align:right">SHARES</span><span style="text-align:right">PRICE</span><span style="text-align:right">VALUE</span><span>WEIGHT</span><span style="text-align:right">TODAY</span><span style="text-align:right">TOTAL GAIN</span><span>TAPE SCORE</span></div>
+                  <sc-for list="{{ pf.rows }}" as="r" hint-placeholder-count="8">
+                    <div onClick="{{ r.onClick }}" style="display:grid;grid-template-columns:minmax(150px,1.3fr) 62px 86px 96px 110px 74px 120px 112px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid #161C25;cursor:pointer" style-hover="background:#121821">
+                      <div style="min-width:0"><div style="font:600 13px/1 'Geist Mono',monospace">{{ r.sym }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.flag }}</div></div>
+                      <span style="font-size:12.5px;text-align:right;color:#C3CBD6">{{ r.sh }}</span>
+                      <span style="font-size:12.5px;text-align:right;color:#C3CBD6">{{ r.px }}</span>
+                      <span style="font-size:13px;font-weight:600;text-align:right">{{ r.val }}</span>
+                      <div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:#1A212B;border-radius:3px;overflow:hidden"><div style="height:100%;width:{{ r.wbar }};background:#3A4553;border-radius:3px"></div></div><span style="font-size:12px;color:#C3CBD6;min-width:38px;text-align:right">{{ r.w }}</span></div>
+                      <span style="font-size:12.5px;font-weight:600;text-align:right;color:{{ r.dayC }}">{{ r.day }}</span>
+                      <div style="text-align:right"><div style="font-size:12.5px;font-weight:600;color:{{ r.totC }}">{{ r.tot }}</div><div style="font-size:11px;color:{{ r.totC }};margin-top:3px">{{ r.totPct }}</div></div>
+                      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:800;color:{{ r.scC }};min-width:22px">{{ r.score }}</span><span style="font-size:10px;font-weight:700;letter-spacing:.04em;color:{{ r.scC }}">{{ r.scLab }}</span></div>
+                    </div>
+                  </sc-for>
+                </div></div>
+              </section>
+              <div style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:16px">
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 10px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">True exposure</h2><span style="font-size:11.5px;color:#7D8796">Looks inside your ETFs</span></div>
+                  <div style="font-size:12px;color:#A3ADBB;line-height:1.45;margin-bottom:8px">{{ pf.lookNote }}</div>
+                  <sc-for list="{{ pf.look }}" as="x" hint-placeholder-count="7"><div style="display:grid;grid-template-columns:96px 1fr 46px;gap:10px;align-items:center;padding:6px 0"><span style="font-size:12.5px;color:#C3CBD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ x.k }}</span><div style="height:7px;background:#1A212B;border-radius:4px;overflow:hidden"><div style="height:100%;width:{{ x.w }};background:{{ x.c }};border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;text-align:right">{{ x.v }}</span></div></sc-for>
+                </section>
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 12px">
+                  <h2 style="margin:0 0 10px;font:600 16px/1.2 Geist,sans-serif">Stress test</h2>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"><sc-for list="{{ pf.scens }}" as="c"><button onClick="{{ c.onClick }}" style="border:1px solid {{ c.bc }};background:{{ c.bg }};color:{{ c.fg }};border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer">{{ c.l }}</button></sc-for></div>
+                  <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:26px;font-weight:600;letter-spacing:-.02em;color:{{ pf.sc.c }}">{{ pf.sc.v }}</span><span style="font-size:13px;font-weight:600;color:{{ pf.sc.c }}">{{ pf.sc.p }}</span></div>
+                  <div style="font-size:12px;color:#A3ADBB;margin:4px 0 10px">{{ pf.sc.n }}</div>
+                  <sc-for list="{{ pf.sc.rows }}" as="x"><div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #161C25;font-size:12.5px"><span style="font:600 12px/1.4 'Geist Mono',monospace">{{ x.k }}</span><span style="font-weight:600;color:{{ x.c }}">{{ x.v }}</span></div></sc-for>
+                </section>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is.alerts }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Alerts" style="display:flex;flex-direction:column;gap:16px">
+            <div style="flex:1 1 480px;min-width:0">
+              <h1 style="margin:0;font:600 30px/1.15 Geist,sans-serif;letter-spacing:-.025em">Alerts</h1>
+              <p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:#A3ADBB;max-width:72ch;text-wrap:pretty">Tell Tape what matters in plain English. It watches every filing, options print and headline, and only pings you when it’s worth your money.</p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+              <div style="flex:1 1 600px;min-width:0;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px;background:#10151C;border:1px solid #2A3340;border-radius:12px;padding:7px 7px 7px 14px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" style="flex:none;fill:#1FD18A"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg>
+                  <input value="{{ al.text }}" onChange="{{ al.onText }}" onKeyDown="{{ al.onKey }}" placeholder="Tell me when…" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;height:36px">
+                  <button onClick="{{ al.build }}" style="border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">{{ al.buildLabel }}</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ al.examples }}" as="x"><button onClick="{{ x.onClick }}" style="border:1px solid #1E2631;background:#10151C;color:#C3CBD6;border-radius:16px;padding:6px 11px;font-size:12px;cursor:pointer" style-hover="border-color:#3A4553">{{ x.t }}</button></sc-for></div>
+                <sc-if value="{{ al.rule }}" hint-placeholder-val="{{ false }}">
+                  <section style="background:#10151C;border:1px solid rgba(31,209,138,.35);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:11px;font-weight:600;letter-spacing:.07em;color:#7D8796">TAPE BUILT THIS RULE</span><span style="font-size:11.5px;color:#7D8796">Edit any part</span></div>
+                    <div style="display:grid;grid-template-columns:64px 1fr;gap:10px 12px;align-items:center">
+                      <span style="font-size:11px;font-weight:700;letter-spacing:.07em;color:#7D8796">WHEN</span><div><span style="font-size:13px;font-weight:600;background:#1B222D;border-radius:7px;padding:6px 10px;display:inline-block">{{ al.rule.source }}</span></div>
+                      <span style="font-size:11px;font-weight:700;letter-spacing:.07em;color:#7D8796">IF</span><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ al.rule.cond }}" as="c"><span style="font-size:12.5px;font-weight:600;background:rgba(31,209,138,.12);color:#3FE0A0;border-radius:7px;padding:6px 10px">{{ c }}</span></sc-for></div>
+                      <span style="font-size:11px;font-weight:700;letter-spacing:.07em;color:#7D8796">SEND</span><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><sc-for list="{{ al.rule.ch }}" as="c"><span style="font-size:12.5px;font-weight:600;background:#1B222D;border-radius:7px;padding:6px 10px">{{ c }}</span></sc-for><span style="font-size:12.5px;color:#A3ADBB">· {{ al.rule.timing }}</span></div>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 12px;background:#0C1117;border:1px solid #1A212B;border-radius:10px"><span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#F5B544;margin-top:2px">SIMULATION</span><span style="font-size:13px;line-height:1.5;color:#DDE3EA">{{ al.rule.bt }}</span></div>
+                    <div style="display:flex;gap:8px"><button onClick="{{ al.create }}" style="border:0;background:#1FD18A;color:#03140C;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer">{{ al.createLabel }}</button></div>
+                  </section>
+                </sc-if>
+                <section style="background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:14px 16px 4px">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><h2 style="margin:0;font:600 16px/1.2 Geist,sans-serif">Your alerts</h2><span style="font-size:12px;color:#7D8796">{{ al.activeN }}</span></div>
+                  <sc-for list="{{ al.list }}" as="a" hint-placeholder-count="5">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid #161C25;opacity:{{ a.op }}">
+                      <div style="min-width:0"><div style="font-size:13.5px;font-weight:600">{{ a.name }}</div><div style="font-size:12px;color:#7D8796;margin-top:4px">{{ a.src }} · {{ a.chs }}</div></div>
+                      <span style="font-size:12px;color:#A3ADBB;text-align:right">{{ a.last }}</span>
+                      <button aria-label="{{ a.name }}" onClick="{{ a.onToggle }}" style="position:relative;width:38px;height:22px;border-radius:11px;border:0;background:{{ a.swBg }};cursor:pointer;padding:0"><span style="position:absolute;top:2px;left:{{ a.kx }};width:18px;height:18px;border-radius:50%;background:#E8ECF1;transition:left .15s"></span></button>
+                    </div>
+                  </sc-for>
+                </section>
+              </div>
+              <section style="flex:1 1 320px;min-width:0;background:#10151C;border:1px solid #1E2631;border-radius:14px;padding:16px 18px 8px">
+                <h2 style="margin:0 0 6px;font:600 16px/1.2 Geist,sans-serif">Example alert activity</h2>
+                <sc-for list="{{ al.fired }}" as="f" hint-placeholder-count="4">
+                  <div onClick="{{ f.onClick }}" style="display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:11px 0;border-top:1px solid #161C25;cursor:pointer" style-hover="background:#121821">
+                    <span style="width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:600 10px/1 'Geist Mono',monospace;background:{{ f.cb }};color:{{ f.cf }}">{{ f.code }}</span>
+                    <div style="min-width:0"><div style="font-size:13px;line-height:1.4"><span style="font:600 12px/1 'Geist Mono',monospace">{{ f.sym }}</span> · {{ f.text }}</div><div style="font-size:11.5px;color:#7D8796;margin-top:3px">{{ f.when }} · matched “{{ f.rule }}”</div></div>
+                  </div>
+                </sc-for>
+              </section>
+            </div>
+          </div>
+        </sc-if>
+        <!--@screens-->
+      </div>
+      <footer style="max-width:1440px;margin:0 auto;padding:16px 28px 26px;border-top:1px solid #1E2631;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:11.5px;color:#7D8796">
+        <span>Tape is a research tool, not investment advice. Options involve risk and aren’t suitable for everyone. Sample data for illustration.</span>
+        <span>Illustrative data, synthetic charts and model estimates. No live feeds connected. Alerts are saved rules; delivery is not enabled.</span>
+      </footer>
+    </main>
+  </div>
+
+  <sc-if value="{{ aiOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAi }}" style="position:fixed;inset:0;background:rgba(4,6,9,.55);z-index:60"></div>
+    <aside style="position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:61;background:#0E1319;border-left:1px solid #2A3340;display:flex;flex-direction:column;box-shadow:-30px 0 60px rgba(0,0,0,.45)">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #1E2631">
+        <span style="width:32px;height:32px;border-radius:9px;background:#1FD18A;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:#03140C"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"></path></svg></span>
+        <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600">Ask Tape</div><div style="font-size:12px;color:#7D8796;margin-top:2px">{{ ai.ctx }}</div></div>
+        <button aria-label="Close AI analyst" onClick="{{ closeAi }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #1E2631;background:transparent;cursor:pointer;font-size:15px;color:#A3ADBB" style-hover="border-color:#2F3B49;color:#E8ECF1">✕</button>
+      </div>
+      <div ref="{{ aiRef }}" style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
+        <sc-for list="{{ ai.msgs }}" as="m">
+          <sc-if value="{{ m.isUser }}"><div style="align-self:flex-end;max-width:86%;background:#1B222D;border-radius:14px 14px 4px 14px;padding:10px 13px;font-size:13.5px;line-height:1.45">{{ m.text }}</div></sc-if>
+          <sc-if value="{{ m.isAi }}">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ m.blocks }}" as="bk">
+                <sc-if value="{{ bk.isP }}"><p style="margin:0;font-size:14px;line-height:1.6;color:#DDE3EA;text-wrap:pretty"><sc-for list="{{ bk.segs }}" as="sg"><sc-if value="{{ sg.cite }}"><span style="display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;margin:0 1px;border-radius:5px;background:#1B222D;border:1px solid #2A3340;font-size:10.5px;font-weight:700;color:#1FD18A;vertical-align:1px">{{ sg.t }}</span></sc-if><sc-if value="{{ sg.txt }}">{{ sg.t }}</sc-if></sc-for></p></sc-if>
+                <sc-if value="{{ bk.isLi }}"><div style="display:grid;grid-template-columns:14px 1fr;gap:6px;font-size:14px;line-height:1.55;color:#DDE3EA"><span style="color:#1FD18A">•</span><span><sc-for list="{{ bk.segs }}" as="sg"><sc-if value="{{ sg.cite }}"><span style="display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;margin:0 1px;border-radius:5px;background:#1B222D;border:1px solid #2A3340;font-size:10.5px;font-weight:700;color:#1FD18A;vertical-align:1px">{{ sg.t }}</span></sc-if><sc-if value="{{ sg.txt }}">{{ sg.t }}</sc-if></sc-for></span></div></sc-if>
+                <sc-if value="{{ bk.isTable }}">
+                  <div style="border:1px solid #1E2631;border-radius:10px;overflow:hidden;font-size:12.5px">
+                    <div style="display:grid;grid-template-columns:62px 52px minmax(0,1fr) 54px;gap:8px;padding:8px 10px;background:#121821;font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#7D8796"><span>TICKER</span><span>SCORE</span><span>BEST PLAY</span><span style="text-align:right">CHANCE</span></div>
+                    <sc-for list="{{ bk.rows }}" as="r"><div onClick="{{ r.onClick }}" style="display:grid;grid-template-columns:62px 52px minmax(0,1fr) 54px;gap:8px;padding:9px 10px;border-top:1px solid #1A212B;align-items:center;cursor:pointer" style-hover="background:#121821"><span style="font:600 12px/1 'Geist Mono',monospace">{{ r.sym }}</span><span style="font-weight:700;color:{{ r.c }}">{{ r.score }}</span><span style="color:#C3CBD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.play }}</span><span style="text-align:right;font-weight:600">{{ r.pop }}</span></div></sc-for>
+                  </div>
+                </sc-if>
+              </sc-for>
+              <sc-if value="{{ m.hasSrc }}">
+                <div style="display:flex;flex-direction:column;gap:5px;padding:10px 12px;background:#0B0F14;border:1px solid #1A212B;border-radius:10px">
+                  <span style="font-size:10.5px;font-weight:600;letter-spacing:.07em;color:#7D8796">SOURCES</span>
+                  <sc-for list="{{ m.src }}" as="x"><div style="display:grid;grid-template-columns:20px 1fr;gap:6px;font-size:12px;line-height:1.4;color:#A3ADBB"><span style="font-weight:700;color:#1FD18A">{{ x.n }}</span><span>{{ x.t }}</span></div></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.hasFollow }}">
+                <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ m.follow }}" as="f"><button onClick="{{ f.onClick }}" style="border:1px solid #2A3340;background:transparent;border-radius:16px;padding:6px 11px;font-size:12.5px;cursor:pointer;color:#C3CBD6" style-hover="border-color:#1FD18A;color:#E8ECF1">{{ f.t }}</button></sc-for></div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-for>
+        <sc-if value="{{ ai.busy }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#A3ADBB"><span style="display:flex;gap:4px">{{ ai.dots }}</span>Analyzing the sample dataset…</div>
+        </sc-if>
+      </div>
+      <div style="padding:14px 16px 16px;border-top:1px solid #1E2631;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-end;gap:8px;background:#10151C;border:1px solid #2A3340;border-radius:12px;padding:8px 8px 8px 12px">
+          <textarea value="{{ ai.input }}" onChange="{{ ai.onInput }}" onKeyDown="{{ ai.onKey }}" rows="2" placeholder="Ask about a stock, a setup, your portfolio…" style="flex:1;min-width:0;border:0;outline:0;background:transparent;resize:none;font-size:14px;line-height:1.45"></textarea>
+          <button aria-label="Send question" onClick="{{ ai.send }}" style="width:36px;height:36px;border-radius:9px;border:0;background:#1FD18A;color:#03140C;cursor:pointer;font-size:16px;font-weight:700">↑</button>
+        </div>
+        <div style="font-size:11px;color:#7D8796">Answers use this demo dataset. Source labels are illustrative. Research, not investment advice.</div>
+      </div>
+    </aside>
+  </sc-if>
+</div>

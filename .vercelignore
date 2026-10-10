@@ -1,0 +1,11 @@
+.git
+.next
+node_modules
+design-reference
+.agents
+.claude
+.codex
+.cursor
+.env*
+artifacts
+test-results

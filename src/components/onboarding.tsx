@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+const picks=['VST','LMT','NVDA','CEG','CVNA','ANET','JPM','NRG','TSLA'];
+export default function Onboarding({name}:{name:string}){
+ const [selected,setSelected]=useState(['VST','LMT','NVDA','CEG','CVNA','ANET']);const [horizon,setHorizon]=useState('Weeks');const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+ async function finish(){setBusy(true);setError('');try{const r=await fetch('/api/workspace',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({onboarded:true,horizon,watched:Object.fromEntries(selected.map(x=>[x,1]))})});if(!r.ok)throw Error();window.location.assign('/app');}catch{setError('Could not save your preferences. Please retry.');setBusy(false);}}
+ return <section className="onboarding"><p className="subtle">Welcome, {name.split(' ')[0]}</p><h1>Make the tape yours.</h1><p>Pick a few companies to follow. You can change your watchlist anytime.</p><div className="ticker-picks">{picks.map(x=><button key={x} aria-pressed={selected.includes(x)} onClick={()=>setSelected(selected.includes(x)?selected.filter(s=>s!==x):[...selected,x])}>{x}<span>{selected.includes(x)?'✓':'+'}</span></button>)}</div><h2>Your research horizon</h2><div className="horizon-picks">{['Days','Weeks','Months'].map(x=><button key={x} aria-pressed={horizon===x} onClick={()=>setHorizon(x)}>{x}</button>)}</div><p className="subtle">Start with the sample portfolio to explore the design. Import your holdings from the Portfolio screen whenever you’re ready. Market data remains illustrative.</p>{error&&<p role="alert" className="error-text">{error}</p>}<button className="primary" disabled={busy} onClick={finish}>{busy?'Saving…':'Open my workspace →'}</button></section>
+}
