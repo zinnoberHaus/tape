@@ -1,5 +1,7 @@
 # Tape
 
+[Open Tape](https://tape-five-zeta.vercel.app) · [Try the demo](https://tape-five-zeta.vercel.app/demo)
+
 Investment research workspace implemented from the supplied **Tape App v2** design. Next.js 16, React 19, Neon managed authentication and Postgres, deployed on Vercel.
 
 The design dataset is **illustrative**: prices, disclosures, news, charts, scores and options estimates are sample content, not live market information. No trades or brokerage connections. Account and workspace persistence use real services.

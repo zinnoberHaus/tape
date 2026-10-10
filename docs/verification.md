@@ -41,5 +41,13 @@ The browser tool was unavailable in this session. Visual and interaction checks 
 
 ## Deployment
 
-Initial production alias: https://tape-five-zeta.vercel.app
-Final commit, live-test outcomes and log scan are appended after verification.
+- Public application: https://tape-five-zeta.vercel.app
+- Verified application commit: `0970e925518f2e5c8d38be0ba50f1ab459202e57`.
+- Verified release: `dpl_FmwerXmS6au3u61otpgfhiEPx6bm`, https://tape-9vnxi3076-my-team-ae70891f.vercel.app.
+- GitHub CI: [passed](https://github.com/zinnoberHaus/tape/actions/runs/38084278482), including a fresh install, generated-source comparison, unit tests, typecheck and production build.
+- All **4 browser tests passed against the public production alias** (19.7 seconds). This includes a live AI request, real sign-in and saved data, self-deletion, and managed administrator actions.
+- Disposable account count after the final run: **0**.
+- Vercel error-log query for that release over the preceding 10 minutes returned no matching entries after the successful production run.
+- Production verification caught and resolved an empty Neon origin allowlist and Gateway runtime identity authentication. Operational details are recorded in `operations.md`.
+
+This evidence update changes documentation only; the verified application source remains unchanged.
