@@ -11,7 +11,7 @@ test('all v2 research screens and portfolio import work',async({page})=>{
  expect(errors).toEqual([]);
 });
 test('landing and authentication render, protected routes require a session',async({page,request})=>{
- await page.goto('/');await expect(page.getByRole('heading',{name:/Turn the noise/})).toBeVisible();await page.screenshot({path:'artifacts/landing-desktop.png',fullPage:true});
+ await page.goto('/');await expect(page.getByRole('heading',{name:/Read the market/})).toBeVisible();await page.screenshot({path:'artifacts/landing-desktop.png',fullPage:true});
  await page.goto('/app');await expect(page).toHaveURL(/\/auth\/sign-in/);await expect(page.getByRole('textbox',{name:/email/i})).toBeVisible();await page.screenshot({path:'artifacts/signin-desktop.png',fullPage:true});
  expect((await request.get('/api/workspace')).status()).toBe(401);
  await page.setViewportSize({width:390,height:844});await page.goto('/');await page.screenshot({path:'artifacts/landing-mobile.png',fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);

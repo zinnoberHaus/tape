@@ -1,4 +1,5 @@
 'use client';
+import '@neondatabase/auth-ui/css';
 import {NeonAuthUIProvider} from '@neondatabase/auth-ui';
 import {authClient} from '@/lib/auth/client';
 import {useRouter} from 'next/navigation';

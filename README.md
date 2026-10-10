@@ -28,6 +28,8 @@ Open http://localhost:43817. Do not commit `.env*` or `.vercel/`.
 - Ask Tape through Vercel AI Gateway, grounded in the sample dataset. Login required, maximum 30 requests per user per UTC day.
 - Audio sample briefing through browser speech synthesis.
 
+See the [landing-page research and verification](docs/landing-redesign.md) for the marketing design, SEO configuration and mobile checks.
+
 ## Source structure
 
 `src/design/tape.html` is the adapted supplied design. `npm run compile:design` generates `src/components/tape-view.jsx` and hover styles at build preparation time; both generated files are committed. There is no browser template evaluator or external design-runtime dependency. `tape-model.js` retains the design's calculations and example dataset. `tape-app.jsx` adds real persistence and imports.

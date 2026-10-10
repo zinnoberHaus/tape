@@ -1,4 +1,6 @@
 'use client';
+import '@neondatabase/auth-ui/css';
+import '@/design/hover.css';
 import React from 'react';
 import {createTapeModel} from './tape-model';
 const TapeModel=createTapeModel(React.Component);
