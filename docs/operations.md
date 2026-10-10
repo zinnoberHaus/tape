@@ -35,3 +35,9 @@ Reference docs checked 2026-10-10: [Neon Next.js integration](https://neon.com/d
 Register your own account, then use Neon Auth → Users → Make admin for that specific account. Sign in again and open `/admin`. The app lists/searches users and supports disabling/enabling accounts and revoking sessions through Neon's managed admin APIs. Regular accounts are rejected by the backend. There is no automatic first-user privilege escalation. The first administrator email is intentionally not guessed.
 
 Account self-deletion requires the current password. It reauthenticates through Neon, signs out, then removes that same user's identity record. Foreign keys cascade the deletion to workspace and quota records. The managed service does not expose the upstream `delete-user` endpoint in this project, so Tape owns this narrowly scoped endpoint.
+
+## Production origins and AI identity
+
+Neon's initial `trusted_origins` list was empty despite the Vercel integration. The dedicated `tape-db` project configuration was updated to include exactly `https://tape-five-zeta.vercel.app`, `https://tape-my-team-ae70891f.vercel.app`, and the verified initial release URL. No wildcard was added. Subsequent domains must be added in Neon Auth → Configuration → Domains and verified with a real signup. Removing an origin rolls back its sign-in access.
+
+AI Gateway reads the current Vercel runtime identity with `getVercelOidcToken()` from `@vercel/oidc`; a locally pulled token alone is insufficient for deployed request identity. Do not store a temporary local OIDC token as a production environment variable.
